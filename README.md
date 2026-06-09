@@ -1,38 +1,34 @@
 # TravelPlan AI
 
-Ένας AI-τροφοδοτούμενος γεννήτρια ταξιδιωτικών προγραμμάτων χτισμένη με Claude API. Δημιούργησε εξατομικευμένα, οικονομικά βελτιστοποιημένα ταξιδιωτικά σχέδια βάσει των προτιμήσεών σου και του στυλ ταξιδιού σου.
+An AI-powered travel itinerary generator built with Claude API. Create personalized, budget-optimized travel plans based on your preferences and travel style.
 
-**[Ξεκίνησε εδώ ✈️](https://qh8wpf79gn-cell.github.io/travelplan-ai/)**
+**[Start Planning ✈️](https://qh8wpf79gn-cell.github.io/travelplan-ai/travelplan_white.html)**
 
-## Λειτουργίες
+## Features
 
-- AI-παραγόμενα λεπτομερή ημερήσια ταξιδιωτικά σχέδια
-- Παρακολούθηση budget και διαχείριση κόστους
-- Εξατομικευμένες προτιμήσεις ταξιδιού (ρυθμός, διαμονή, δραστηριότητες, κουζίνα)
-- Ολοκληρωμένη ανάλυση κόστους ανά ημέρα
-- Πρακτικές συμβουλές logistics και insider tips
+- AI-generated detailed day-by-day itineraries
+- Budget tracking and cost management
+- Customizable travel preferences (pace, accommodation, activities, cuisine)
+- Comprehensive cost breakdown per day
+- Practical logistics and insider tips
 
-## Χρήση
+## Usage
 
-1. Εισήγαγε το Claude API key σου
-2. Καθόρισε προορισμό, διάρκεια και budget
-3. Διαμόρφωσε τις προτιμήσεις ταξιδιού σου
-4. Δημιούργησε εξατομικευμένο πρόγραμμα
+1. Enter your Claude API key
+2. Specify destination, duration, and budget
+3. Configure travel preferences
+4. Generate personalized itinerary
 
-## Απαιτήσεις
+## Requirements
 
-- Claude API key από [Anthropic](https://console.anthropic.com)
+- Claude API key from [Anthropic](https://console.anthropic.com)
 
 ## Tech Stack
 
 - HTML5, CSS3, JavaScript
 - Claude API (Haiku model)
-- Client-side μόνο – δεν απαιτείται backend
-
-## Ανάπτυξη
-
-Ανέπτυξε στο GitHub Pages μετονομάζοντας το `travelplan_white.html` σε `index.html` και κάνοντας push στο repository σου.
+- Client-side only – no backend required
 
 ---
 
-Δημιουργήθηκε με Claude AI
+Built with Claude AI
