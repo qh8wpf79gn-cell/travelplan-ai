@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TravelPlan AI ✈️</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:      #ffffff;
+      --surface: rgba(0,0,0,0.02);
+      --border:  rgba(0,0,0,0.08);
+      --text:    #1a1a1a;
+      --muted:   #666666;
+      --light-surface: rgba(0,0,0,0.03);
+    }
+
+    /* ─── BACKGROUND ─────────────────────────────────── */
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      min-height: 100vh;
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    .orbs {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(90px); opacity: .04;
+      animation: drift ease-in-out infinite alternate;
+    }
+    .orb-1 { width:700px; height:700px; background:#4facfe; top:-200px; left:-150px; animation-duration:18s; }
+    .orb-2 { width:550px; height:550px; background:#f7971e; bottom:-120px; right:-100px; animation-duration:23s; }
+    .orb-3 { width:450px; height:450px; background:#c471f5; top:40%; left:45%; animation-duration:15s; }
+    .orb-4 { width:350px; height:350px; background:#43e97b; bottom:15%; left:5%; animation-duration:20s; }
+    .orb-5 { width:300px; height:300px; background:#f5576c; top:20%; right:5%; animation-duration:17s; }
+    @keyframes drift {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(35px,-45px) scale(1.06); }
+    }
+
+    .page { position: relative; z-index: 1; }
+
+    /* ─── HEADER ─────────────────────────────────────── */
+    header {
+      text-align: center;
+      padding: 4rem 1.5rem 2.5rem;
+    }
+    .header-badge {
+      display: inline-flex; align-items: center; gap: .45rem;
+      background: rgba(79,172,254,.08);
+      border: 1px solid rgba(79,172,254,.2);
+      border-radius: 999px;
+      padding: .3rem 1rem;
+      font-size: .72rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: #0066ff; margin-bottom: 1.4rem;
+    }
+    header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.6rem, 7vw, 4.2rem);
+      font-weight: 800; line-height: 1.08;
+      background: linear-gradient(135deg, #0066ff 20%, #0088ff 55%, #ff6b35 90%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: .8rem;
+    }
+    header p {
+      color: var(--muted); font-size: 1.05rem;
+      max-width: 480px; margin: 0 auto; line-height: 1.65;
+    }
+
+    /* ─── CONTAINER ──────────────────────────────────── */
+    .container { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 5rem; }
+
+    /* ─── PROGRESS ───────────────────────────────────── */
+    .progress-wrap {
+      background: rgba(0,0,0,.06); border-radius: 999px;
+      height: 3px; margin-bottom: 2rem; overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%; border-radius: 999px;
+      background: linear-gradient(90deg, #0066ff, #a855f7, #ff6b35);
+      transition: width .5s ease; width: 0%;
+    }
+
+    /* ─── CARD ───────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 1.8rem 2rem;
+      margin-bottom: 1rem;
+      position: relative; overflow: hidden;
+      transition: border-color .3s, box-shadow .3s;
+    }
+    .card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      border-radius: 22px 22px 0 0;
+      background: var(--c-top, transparent);
+    }
+    .card:hover { 
+      border-color: rgba(0,0,0,.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,.05);
+    }
+
+    .card.c-api    { --c-top: linear-gradient(90deg,#7c83fd,#9ba3ff); }
+    .card.c-dest   { --c-top: linear-gradient(90deg,#0066ff,#00a8ff); }
+    .card.c-budget { --c-top: linear-gradient(90deg,#ff8c42,#ffb627); }
+    .card.c-prof   { --c-top: linear-gradient(90deg,#a855f7,#ec4899); }
+    .card.c-food   { --c-top: linear-gradient(90deg,#f093fb,#f5576c); }
+    .card.c-act    { --c-top: linear-gradient(90deg,#10b981,#6ee7b7); }
+    .card.c-acc    { --c-top: linear-gradient(90deg,#0066ff,#00d4ff); }
+    .card.c-trans  { --c-top: linear-gradient(90deg,#f87171,#fde047); }
+    .card.c-extra  { --c-top: linear-gradient(90deg,#06b6d4,#8b5cf6); }
+    .card.c-result { --c-top: linear-gradient(90deg,#10b981,#6ee7b7); }
+
+    /* ─── CARD TITLE ─────────────────────────────────── */
+    .ctitle {
+      display: flex; align-items: center; gap: .55rem;
+      font-size: .72rem; font-weight: 700;
+      letter-spacing: .13em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 1.25rem;
+    }
+    .ctitle-icon { font-size: 1.05rem; line-height: 1; }
+    .ctitle::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    /* ─── INPUTS ─────────────────────────────────────── */
+    .f { margin-bottom: 1rem; }
+    .f:last-child { margin-bottom: 0; }
+    .lbl { display: block; font-size: .82rem; color: var(--muted); font-weight: 500; margin-bottom: .4rem; }
+
+    input[type=text], input[type=password], select, textarea {
+      width: 100%;
+      padding: .75rem 1rem;
+      background: rgba(0,0,0,.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: .93rem; font-family: 'Inter', sans-serif;
+      outline: none; transition: border-color .2s, box-shadow .2s, background .2s;
+      appearance: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: rgba(0,102,255,.4);
+      background: rgba(0,102,255,.03);
+      box-shadow: 0 0 0 3px rgba(0,102,255,.08);
+    }
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666666' stroke-width='2'%3E%3Cpolyline points='6,9 12,15 18,9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right .85rem center; background-size: 1rem;
+      padding-right: 2.4rem; cursor: pointer;
+    }
+    select option { background: #ffffff; color: #1a1a1a; }
+    textarea { resize: vertical; min-height: 76px; line-height: 1.55; }
+
+    /* ─── PW WRAP ────────────────────────────────────── */
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 3rem; }
+    .pw-eye {
+      position: absolute; right: .85rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 1.05rem; padding: 0;
+      transition: color .2s;
+    }
+    .pw-eye:hover { color: var(--text); }
+
+    /* ─── GRID ───────────────────────────────────────── */
+    .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .8rem; }
+    @media (max-width: 580px) { .g2,.g3 { grid-template-columns: 1fr; } }
+
+    /* ─── BUDGET ─────────────────────────────────────── */
+    .budget-hero { text-align: center; padding: .3rem 0 .8rem; }
+    .budget-amount {
+      font-family: 'Syne', sans-serif;
+      font-size: 3.2rem; font-weight: 800; line-height: 1;
+      background: linear-gradient(135deg,#ff8c42,#ffb627);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: .15rem;
+    }
+    .budget-tier { font-size: .9rem; color: var(--muted); }
+
+    /* ─── PILLS ───────────────────────────────────────── */
+    .pills { display: flex; flex-wrap: wrap; gap: .6rem; }
+    .pill {
+      display: inline-flex; align-items: center; gap: .35rem;
+      background: rgba(0,0,0,.05); border: 1px solid rgba(0,0,0,.08);
+      border-radius: 999px; padding: .45rem .9rem;
+      font-size: .78rem; cursor: pointer; transition: all .2s;
+    }
+    .pill:hover { background: rgba(0,0,0,.08); border-color: rgba(0,0,0,.12); }
+    .pill.active {
+      background: linear-gradient(135deg, rgba(0,102,255,.15), rgba(168,85,247,.15));
+      border-color: rgba(0,102,255,.3);
+    }
+    .pill-icon { font-size: .95rem; }
+
+    /* ─── BUTTONS ─────────────────────────────────────── */
+    button {
+      padding: .85rem 1.8rem;
+      background: linear-gradient(135deg, #0066ff, #0088ff);
+      border: none; border-radius: 14px;
+      color: #fff; font-weight: 600;
+      cursor: pointer; font-size: .95rem;
+      transition: all .3s;
+      font-family: 'Inter', sans-serif;
+    }
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,102,255,.3);
+    }
+    button:disabled {
+      opacity: .6; cursor: not-allowed;
+    }
+
+    /* ─── LOADING ─────────────────────────────────────── */
+    .loading {
+      position: fixed; inset: 0; z-index: 99;
+      background: rgba(255,255,255,.95); backdrop-filter: blur(10px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .3s;
+    }
+    .loading.show { opacity: 1; pointer-events: auto; }
+    .spin {
+      width: 50px; height: 50px; border: 3px solid rgba(0,102,255,.2);
+      border-top-color: #0066ff; border-radius: 50%; animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── ERROR ───────────────────────────────────────── */
+    .err-box {
+      position: fixed; top: 2rem; left: 1.5rem; right: 1.5rem; max-width: 500px;
+      background: #fee2e2; border: 1px solid #fecaca; border-radius: 12px;
+      padding: 1rem 1.25rem; color: #b91c1c; font-size: .95rem;
+      opacity: 0; pointer-events: none; transition: opacity .3s;
+      z-index: 100;
+    }
+    .err-box.show { opacity: 1; pointer-events: auto; }
+    @media (max-width: 640px) { .err-box { left: 1rem; right: 1rem; top: 1rem; } }
+
+    /* ─── RESULT ──────────────────────────────────────── */
+    .res-wrap {
+      opacity: 0; pointer-events: none; transition: opacity .4s;
+    }
+    .res-wrap.show { opacity: 1; pointer-events: auto; }
+    
+    .res-card {
+      background: var(--light-surface); border: 1px solid var(--border);
+      border-radius: 22px; padding: 2rem; margin-bottom: 1rem;
+    }
+    .res-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .res-title { font-size: 1.4rem; font-weight: 700; }
+    .copy-btn {
+      padding: .5rem 1rem; font-size: .85rem;
+      background: rgba(0,102,255,.1); border: 1px solid rgba(0,102,255,.2);
+      color: #0066ff; border-radius: 8px; cursor: pointer;
+      transition: all .2s;
+    }
+    .copy-btn:hover {
+      background: rgba(0,102,255,.15); border-color: rgba(0,102,255,.3);
+    }
+
+    #rb {
+      color: var(--text); line-height: 1.8; word-wrap: break-word;
+    }
+    #rb p { margin-bottom: 1rem; }
+    #rb h2 { font-size: 1.3rem; font-weight: 700; margin: 2rem 0 1rem; }
+    #rb h3 { font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 .8rem; color: #0066ff; }
+    #rb h4 { font-size: 1rem; font-weight: 600; margin: 1rem 0 .6rem; }
+    #rb strong { font-weight: 600; }
+    #rb em { font-style: italic; }
+    #rb ul { margin: 1rem 0 1rem 1.8rem; }
+    #rb li { margin-bottom: .5rem; }
+    #rb hr { border: none; height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+    /* ─── FOOTER ──────────────────────────────────────── */
+    footer {
+      text-align: center; padding: 2rem 1.5rem;
+      color: var(--muted); font-size: .85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+    <div class="orb orb-5"></div>
+  </div>
+
+  <div class="page">
+    <header>
+      <div class="header-badge">✨ AI-Powered Travel Planning</div>
+      <h1>TravelPlan AI</h1>
+      <p>Δημιούργησε το ιδανικό ταξιδιωτικό πρόγραμμα με AI — προσαρμοσμένο στο budget, τις προτιμήσεις και τον στυλ σου.</p>
+    </header>
+
+    <div class="container">
+      <div class="progress-wrap"><div class="progress-bar"></div></div>
+
+      <!-- ─── API KEY ────────────────────────────────────── -->
+      <div class="card c-api">
+        <div class="ctitle"><span class="ctitle-icon">🔑</span> API Configuration</div>
+        <div class="f">
+          <label class="lbl">Claude API Key</label>
+          <div class="pw-wrap">
+            <input type="password" id="apiKey" placeholder="sk-ant-..." />
+            <button class="pw-eye" onclick="togglePw()">👁️</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── DESTINATION & BASICS ──────────────────────── -->
+      <div class="card c-dest">
+        <div class="ctitle"><span class="ctitle-icon">🗺️</span> Προορισμός & Διάρκεια</div>
+        <div class="g2">
+          <div class="f">
+            <label class="lbl">Προορισμός *</label>
+            <input type="text" id="dest" placeholder="π.χ. Αθήνα, Σαντορίνη, Ρόδος..." />
+          </div>
+          <div class="f">
+            <label class="lbl">Διάρκεια (ημέρες) *</label>
+            <select id="days"><option>3</option><option selected>5</option><option>7</option><option>10</option><option>14</option></select>
+          </div>
+        </div>
+        <div class="g2">
+          <div class="f">
+            <label class="lbl">Μήνας ταξιδιού</label>
+            <select id="month">
+              <option>Σύντομα</option>
+              <option selected>🌍 Ανά Σεζόν...</option>
+              <option>🌸 Ιανουάριος</option><option>🌸 Φεβρουάριος</option><option>🌸 Μάρτιος</option>
+              <option>☀️ Απρίλιος</option><option>☀️ Μάιος</option><option>☀️ Ιούνιος</option>
+              <option>🔥 Ιούλιος</option><option>🔥 Αύγουστος</option><option>🍂 Σεπτέμβριος</option>
+              <option>🍂 Οκτώβριος</option><option>🍂 Νοέμβριος</option><option>❄️ Δεκέμβριος</option>
+            </select>
+          </div>
+          <div class="f">
+            <label class="lbl">Αριθμός ατόμων</label>
+            <select id="persons"><option selected>1</option><option>2</option><option>3</option><option>4</option><option>5+</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── BUDGET ─────────────────────────────────────── -->
+      <div class="card c-budget">
+        <div class="ctitle"><span class="ctitle-icon">💰</span> Budget</div>
+        <div class="f">
+          <label class="lbl">Budget ανά άτομο (€) *</label>
+          <input type="text" id="budget" value="1500" placeholder="π.χ. 1500" />
+        </div>
+        <div class="budget-hero">
+          <div class="budget-amount" id="tierDisplay">€1.500</div>
+          <div class="budget-tier" id="tierLabel">Comfortable (3★ ξενοδοχεία)</div>
+        </div>
+      </div>
+
+      <!-- ─── PROFILE ────────────────────────────────────── -->
+      <div class="card c-prof">
+        <div class="ctitle"><span class="ctitle-icon">👤</span> Προφίλ Ταξιδιώτη</div>
+        <div class="g3">
+          <div class="f">
+            <label class="lbl">Τύπος Ταξιδιώτη</label>
+            <select id="travType">
+              <option value="solo">Solo ταξιδιώτης</option>
+              <option value="couple">Ζευγάρι</option>
+              <option value="family">Οικογένεια</option>
+              <option value="group">Ομάδα φίλων</option>
+            </select>
+          </div>
+          <div class="f">
+            <label class="lbl">Ρυθμός</label>
+            <select id="pace">
+              <option value="relaxed">Χαλαρός — κυρίως ξεκούραση</option>
+              <option value="balanced" selected>Ισορροπημένος — μίξη</option>
+              <option value="fast">Γρήγορος — πολλά πράγματα</option>
+            </select>
+          </div>
+          <div class="f">
+            <label class="lbl">Στυλ Ημέρας</label>
+            <select id="dayStyle">
+              <option value="structured">Δομημένη ημέρα — λεπτομέρειες</option>
+              <option value="flexible" selected>Ευέλικτη — σχέδιο με αστικότητα</option>
+              <option value="spontaneous">Αυθόρμητη — σχεδιάζω καθώς πηγαίνω</option>
+            </select>
+          </div>
+        </div>
+        <div class="g3">
+          <div class="f">
+            <label class="lbl">Φυσική Δραστηριότητα</label>
+            <select id="fitness">
+              <option value="light">Ελαφριά — κυρίως σε πόδια</option>
+              <option value="moderate" selected>Μέτρια — ανάμικτη</option>
+              <option value="intense">Έντονη — πεζοπορία, αθλητικά</option>
+            </select>
+          </div>
+          <div class="f">
+            <label class="lbl">Διατροφή</label>
+            <select id="diet">
+              <option value="omni" selected>Omnivore — τα πάντα</option>
+              <option value="veg">Vegetarian</option>
+              <option value="vegan">Vegan</option>
+              <option value="gluten">Gluten-free</option>
+            </select>
+          </div>
+          <div class="f">
+            <label class="lbl">Προτιμώμενη Διαμονή</label>
+            <select id="acc">
+              <option value="budget">Budget hostel/AirBnB</option>
+              <option value="hotel" selected>3★ Standard Hotel</option>
+              <option value="boutique">Boutique Hotel</option>
+              <option value="luxury">Luxury 5★ Resort</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── INTERESTS ──────────────────────────────────── -->
+      <div class="card c-food">
+        <div class="ctitle"><span class="ctitle-icon">🍽️</span> Στυλ Φαγητού</div>
+        <div class="pills" id="foodStylePills"></div>
+      </div>
+
+      <div class="card c-act">
+        <div class="ctitle"><span class="ctitle-icon">🎭</span> Δραστηριότητες</div>
+        <div class="pills" id="actsPills"></div>
+      </div>
+
+      <div class="card c-trans">
+        <div class="ctitle"><span class="ctitle-icon">🚌</span> Μεταφορά</div>
+        <div class="pills" id="transPills"></div>
+      </div>
+
+      <div class="card c-extra">
+        <div class="ctitle"><span class="ctitle-icon">⭐</span> Ειδικά Ενδιαφέροντα</div>
+        <div class="pills" id="specialPills"></div>
+      </div>
+
+      <!-- ─── MUST-SEE / AVOID ───────────────────────────– -->
+      <div class="card c-result">
+        <div class="ctitle"><span class="ctitle-icon">📝</span> Ειδικές Προτιμήσεις</div>
+        <div class="f">
+          <label class="lbl">Must-see / Must-do (προαιρετικό)</label>
+          <textarea id="mustSee" placeholder="π.χ. Ακρόπολη, sunset στη Σαντορίνη, μουσείο..."></textarea>
+        </div>
+        <div class="f">
+          <label class="lbl">Να αποφύγει (προαιρετικό)</label>
+          <textarea id="avoid" placeholder="π.χ. πολυσύχναστα τουριστικά spots, ακριβά εστιατόρια..."></textarea>
+        </div>
+      </div>
+
+      <!-- ─── BUTTON ──────────────────────────────────────── -->
+      <div style="text-align: center; margin: 2rem 0;">
+        <button id="genBtn" onclick="go()">✈️  Δημιούργησε το Πρόγραμμά μου</button>
+      </div>
+
+      <div class="err-box" id="errBox"></div>
+      <div class="loading" id="loading"><div class="spin"></div></div>
+
+      <!-- ─── RESULT ──────────────────────────────────────── -->
+      <div class="res-wrap" id="resWrap">
+        <div class="res-card">
+          <div class="res-header">
+            <div class="res-title">✈️ Το Πρόγραμμά σου</div>
+            <button class="copy-btn" onclick="copyRes()">📋 Αντιγραφή</button>
+          </div>
+          <div id="rb"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Σχεδιάστηκε με ❤️ χρησιμοποιώντας Claude AI | Τα δεδομένα σας δεν αποθηκεύονται
+    </footer>
+  </div>
+
+  <script>
+    /* ── INITIALIZE ──────────────────────────────────── */
+    window.addEventListener('DOMContentLoaded', () => {
+      initPills();
+      updateTierDisplay();
+      document.getElementById('budget').addEventListener('input', updateTierDisplay);
+    });
+
+    /* ── TIER DISPLAY ────────────────────────────────── */
+    const tiers = [
+      { max: 800,  lbl: 'Budget', desc: 'hostels/budget hotels' },
+      { max: 1500, lbl: 'Comfortable', desc: '3★ ξενοδοχεία' },
+      { max: 2500, lbl: 'Mid-Range', desc: 'boutique hotels' },
+      { max: 9999, lbl: 'Luxury', desc: 'resorts & 5★ hotels' },
+    ];
+    function updateTierDisplay() {
+      const b = parseInt(document.getElementById('budget').value) || 0;
+      const t = tiers.find(t => b <= t.max) || tiers.at(-1);
+      document.getElementById('tierDisplay').textContent = `€${b.toLocaleString()}`;
+      document.getElementById('tierLabel').textContent = `${t.lbl} (${t.desc})`;
+    }
+
+    /* ── PILLS ───────────────────────────────────────── */
+    const foodStyleDef = [
+      { id: 'finedining', icon: '🥂', label: 'Fine Dining' },
+      { id: 'bistro', icon: '🍷', label: 'Casual Bistro' },
+      { id: 'street', icon: '🌮', label: 'Street Food' },
+      { id: 'local', icon: '🍖', label: 'Τοπική Κουζίνα' },
+      { id: 'cafe', icon: '☕', label: 'Cafe & Brunch' },
+      { id: 'market', icon: '🛒', label: 'Food Market' },
+      { id: 'bar', icon: '🍺', label: 'Ταβέρνες' },
+      { id: 'rooftop', icon: '🌃', label: 'Rooftop' },
+    ];
+    const actsDef = [
+      { id: 'history', icon: '🏛️', label: 'Ιστορία & Μουσεία' },
+      { id: 'art', icon: '🎨', label: 'Τέχνη & Γκαλερί' },
+      { id: 'nature', icon: '🌲', label: 'Φύση & Πάρκα' },
+      { id: 'nightlife', icon: '🌙', label: 'Nightlife' },
+      { id: 'shopping', icon: '🛍️', label: 'Ψώνια' },
+      { id: 'adventure', icon: '⛰️', label: 'Adventure' },
+      { id: 'arch', icon: '🏰', label: 'Αρχιτεκτονική' },
+      { id: 'beach', icon: '🏖️', label: 'Παραλία' },
+      { id: 'music', icon: '🎵', label: 'Ζωντανή Μουσική' },
+      { id: 'wine', icon: '🍷', label: 'Κρασί & Γεύσεις' },
+      { id: 'spa', icon: '💆', label: 'Spa & Wellness' },
+      { id: 'photo', icon: '📸', label: 'Φωτογραφία' },
+      { id: 'sports', icon: '⚽', label: 'Αθλήματα' },
+      { id: 'locallife', icon: '🗣️', label: 'Τοπική Ζωή' },
+      { id: 'cooking', icon: '👨‍🍳', label: 'Μαθήματα Μαγειρικής' },
+    ];
+    const transDef = [
+      { id: 'metro', icon: '🚇', label: 'Μετρό & ΜΜΜ' },
+      { id: 'car', icon: '🚗', label: 'Ενοικίαση Αυτοκινήτου' },
+      { id: 'taxi', icon: '🚕', label: 'Taxi/Uber' },
+      { id: 'bike', icon: '🚴', label: 'Ποδήλατο' },
+      { id: 'walk', icon: '🚶', label: 'Πεζή' },
+      { id: 'scooter', icon: '🛴', label: 'Scooter' },
+      { id: 'boat', icon: '⛴️', label: 'Πλοίο/Φέρι' },
+    ];
+    const specialDef = [
+      { id: 'gastro', icon: '🍴', label: 'Γαστρονομία' },
+      { id: 'winetour', icon: '🍇', label: 'Οινοτουρισμός' },
+      { id: 'streetart', icon: '🎭', label: 'Street Art' },
+      { id: 'film', icon: '🎬', label: 'Κινηματογραφικοί Τόποι' },
+      { id: 'lit', icon: '📚', label: 'Λογοτεχνία & Ιστορία' },
+      { id: 'eco', icon: '🌍', label: 'Sustainable Travel' },
+      { id: 'hidden', icon: '🔍', label: 'Hidden Gems' },
+      { id: 'luxury_exp', icon: '✨', label: 'Unique Experiences' },
+      { id: 'family_act', icon: '👨‍👩‍👧', label: 'Οικογενειακές Δραστηριότητες' },
+    ];
+
+    function initPills() {
+      renderPills('foodStylePills', foodStyleDef, 'foodStyle');
+      renderPills('actsPills', actsDef, 'acts');
+      renderPills('transPills', transDef, 'trans');
+      renderPills('specialPills', specialDef, 'special');
+    }
+
+    function renderPills(containerId, defs, fieldName) {
+      const c = document.getElementById(containerId);
+      c.innerHTML = defs.map(d => `<div class="pill" data-field="${fieldName}" data-id="${d.id}" onclick="togglePill(event)"><span class="pill-icon">${d.icon}</span>${d.label}</div>`).join('');
+    }
+
+    function togglePill(e) {
+      e.target.closest('.pill').classList.toggle('active');
+    }
+
+    function many(field) {
+      return Array.from(document.querySelectorAll(`.pill[data-field="${field}"].active`)).map(p => p.dataset.id);
+    }
+    function one(field) {
+      return document.getElementById(field).value;
+    }
+
+    /* ── PASSWORD TOGGLE ─────────────────────────────── */
+    function togglePw() {
+      const inp = document.getElementById('apiKey');
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+    }
+
+    /* ── LABELS ──────────────────────────────────────── */
+    const L = {
+      travType: { solo:'solo ταξιδιώτης', couple:'ζευγάρι', family:'οικογένεια', group:'ομάδα φίλων' },
+      pace:     { relaxed:'χαλαρό', balanced:'ισορροπημένο', fast:'γρήγορο' },
+      dayStyle: { structured:'δομημένη', flexible:'ευέλικτη', spontaneous:'αυθόρμητη' },
+      fitness:  { light:'ελαφριά', moderate:'μέτρια', intense:'έντονη' },
+      diet:     { omni:'omnivore', veg:'vegetarian', vegan:'vegan', gluten:'gluten-free' },
+      acc:      { budget:'budget hostel/AirBnB', hotel:'3★ ξενοδοχείο', boutique:'boutique hotel', luxury:'luxury 5★ resort' },
+      trans:    { metro:'μετρό & ΜΜΜ', car:'ενοικίαση αυτοκινήτου', taxi:'taxi/uber', bike:'ποδήλατο', walk:'κυρίως πεζή', scooter:'scooter/moped', boat:'πλοίο/φέρι' },
+    };
+    const tr = (map, vals) => vals.length ? vals.map(v => map[v]||v).join(', ') : null;
+
+    /* ── GENERATE ────────────────────────────────────– */
+    async function go() {
+      const key  = document.getElementById('apiKey').value.trim();
+      const dest = document.getElementById('dest').value.trim();
+      const days = document.getElementById('days').value;
+      const bud  = document.getElementById('budget').value;
+      const mnth = document.getElementById('month').value.replace(/^[\S]+\s/,'');
+      const must = document.getElementById('mustSee').value.trim();
+      const avd  = document.getElementById('avoid').value.trim();
+      const persons = document.getElementById('persons').value;
+
+      clearErr();
+      if (!key)  { err('⚠️ Εισήγαγε το Claude API key σου.'); return; }
+      if (!dest) { err('⚠️ Γράψε τον προορισμό σου.'); return; }
+
+      const trav   = L.travType[one('travType')]  || 'solo ταξιδιώτης';
+      const pace   = L.pace[one('pace')]           || 'ισορροπημένο';
+      const dayS   = L.dayStyle[one('dayStyle')]   || 'κανονικό';
+      const fit    = L.fitness[one('fitness')]     || 'μέτριο';
+      const dietL  = L.diet[one('diet')]           || 'omnivore';
+      const accL   = L.acc[one('acc')]             || 'ξενοδοχείο 3★';
+      const tierL  = (tiers.find(t=>+bud<=t.max)||tiers.at(-1)).lbl;
+
+      const foodS  = tr(foodStyleDef.reduce((a,d)=>({...a,[d.id]:d.label}),{}), many('foodStyle')) || 'οτιδήποτε νόστιμο';
+      const actS   = tr(actsDef.reduce((a,d)=>({...a,[d.id]:d.label}),{}), many('acts')) || 'ποικίλες δραστηριότητες';
+      const tranS  = tr(transDef.reduce((a,d)=>({...a,[d.id]:d.label}),{}), many('trans')) || 'μέσα μαζικής μεταφοράς';
+      const specS  = tr(specialDef.reduce((a,d)=>({...a,[d.id]:d.label}),{}), many('special'));
+
+      const budgetNum   = parseInt(bud) || 1500;
+      const daysNum     = parseInt(days) || 5;
+      const accBudget   = Math.round(budgetNum * 0.40);
+      const foodBudget  = Math.round(budgetNum * 0.25);
+      const actBudget   = Math.round(budgetNum * 0.20);
+      const tranBudget  = Math.round(budgetNum * 0.15);
+      const dailyLimit  = Math.round((budgetNum - accBudget) / daysNum);
+
+      const prompt = `Είσαι έμπειρος ταξιδιωτικός σύμβουλος. Γράψε λεπτομερές ταξιδιωτικό πρόγραμμα στα ΕΛΛΗΝΙΚΆ.
+
+⚠️ ΚΡΙΤΙΚΟΣ ΚΑΝΟΝΑΣ BUDGET — ΠΡΕΠΕΙ ΝΑ ΤΗΡΕΙΤΑΙ ΑΠΟΛΥΤΑ:
+- Το ΣΥΝΟΛΙΚΟ κόστος ΔΕΝ πρέπει να ξεπεράσει €${budgetNum} ανά άτομο για ΟΛΟ το ταξίδι.
+- Κατανομή budget: διαμονή ≤€${accBudget} | φαγητό ≤€${foodBudget} | δραστηριότητες ≤€${actBudget} | μεταφορά ≤€${tranBudget}
+- Κόστος ανά ημέρα (εκτός διαμονής): ≤€${dailyLimit}/άτομο
+- Αν κάτι κοστίζει παραπάνω, πρότεινε ΦΘΗΝΟΤΕΡΗ εναλλακτική που χωράει στο budget.
+- Στη σύνοψη κόστους, επιβεβαίωσε ότι το σύνολο είναι ≤€${budgetNum}.
+
+## Στοιχεία ταξιδιού
+- **Προορισμός:** ${dest}
+- **Διάρκεια:** ${days} ημέρες${mnth ? `  |  **Μήνας:** ${mnth}` : ''}
+- **Άτομα:** ${persons}
+- **Budget ανά άτομο:** €${budgetNum} ΣΥΝΟΛΙΚΑ (${tierL}) — συμπεριλαμβάνει διαμονή, φαγητό, δραστηριότητες, μεταφορές
+- **Τύπος ταξιδιώτη:** ${trav}
+- **Ρυθμός:** ${pace}
+- **Στυλ ημέρας:** ${dayS}
+- **Φυσική δραστηριότητα:** ${fit}
+- **Διατροφή:** ${dietL}
+- **Φαγητό:** ${foodS}
+- **Δραστηριότητες:** ${actS}
+- **Διαμονή:** ${accL}
+- **Μεταφορά:** ${tranS}${specS ? `\n- **Ειδικά ενδιαφέροντα:** ${specS}` : ''}${must ? `\n- **Must-see/do:** ${must}` : ''}${avd ? `\n- **Να αποφύγει:** ${avd}` : ''}
+
+## Δομή προγράμματος
+
+Για ΚΑΘΕ ημέρα χρησιμοποίησε αυτή τη δομή:
+
+### 📅 Ημέρα X — [Δελεαστικός τίτλος ημέρας]
+
+**🌅 Πρωί**
+- [Συγκεκριμένη δραστηριότητα ή αξιοθέατο] — *€XX/άτομο*
+- ☕ Πρωινό: [Συγκεκριμένο μέρος] — *€XX*
+
+**☀️ Μεσημέρι**
+- [Δραστηριότητες]
+- 🍽️ Μεσημεριανό: [Συγκεκριμένο εστιατόριο / τύπος] — *€XX*
+
+**🌙 Απόγευμα / Βράδυ**
+- [Δραστηριότητες]
+- 🌃 Βραδινό: [Συγκεκριμένη πρόταση] — *€XX*
+
+**💰 Κόστος ημέρας: €XX/άτομο** (πρέπει να είναι ≤€${dailyLimit})
+
+---
+
+Μετά από όλες τις ημέρες:
+
+## 📊 Σύνοψη Κόστους
+Ανάλυση budget με πίνακα: διαμονή / φαγητό / δραστηριότητες / μεταφορές / ΣΥΝΟΛΟ.
+⚠️ Το σύνολο ΠΡΕΠΕΙ να είναι ≤€${budgetNum}/άτομο. Αν υπάρχει περίσσευμα, ανέφερέ το.
+
+## 💡 Πρακτικές Συμβουλές (5–6 συγκεκριμένες για ${dest})
+
+## 🚌 Μεταφορά & Logistics
+
+## 🌟 Insider Tips (2–3 hidden gems)
+
+Χρησιμοποίησε ΠΑΝΤΑ συγκεκριμένα ονόματα. Να είσαι ενθουσιώδης αλλά ΠΑΝΤΑ εντός budget!`;
+
+      setLoad(true);
+      document.getElementById('resWrap').classList.remove('show');
+
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': key,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true',
+          },
+          body: JSON.stringify({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 4096,
+            messages: [{ role: 'user', content: prompt }],
+          }),
+        });
+
+        if (!res.ok) {
+          let m = `HTTP ${res.status}`;
+          try { const j = await res.json(); m = j.error?.message || m; } catch {}
+          if (res.status === 401) m = 'Λάθος API key — έλεγξε ότι το αντέγραψες σωστά.';
+          if (res.status === 429) m = 'Rate limit — δοκίμασε σε λίγο.';
+          throw new Error(m);
+        }
+
+        const data = await res.json();
+        const txt  = data.content?.[0]?.text || 'Δεν λήφθηκε απάντηση.';
+        document.getElementById('rb').innerHTML = md(txt);
+        document.getElementById('resWrap').classList.add('show');
+        setTimeout(() => document.getElementById('resWrap').scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+
+      } catch (e) {
+        err('⚠️ ' + e.message);
+      } finally {
+        setLoad(false);
+      }
+    }
+
+    /* ── MARKDOWN → HTML ─────────────────────────────– */
+    function md(t) {
+      const e = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return e(t)
+        .replace(/^#{4} (.+)$/gm,   '<h4>$1</h4>')
+        .replace(/^#{3} (.+)$/gm,   '<h3>$1</h3>')
+        .replace(/^#{2} (.+)$/gm,   '<h2>$1</h2>')
+        .replace(/^#{1} (.+)$/gm,   '<h2>$1</h2>')
+        .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+        .replace(/\*\*(.+?)\*\*/g,  '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g,      '<em>$1</em>')
+        .replace(/^---+$/gm,        '<hr>')
+        .replace(/^[-•] (.+)$/gm,   '<li>$1</li>')
+        .replace(/(<li>[\s\S]*?<\/li>\n?)+/g, m => `<ul>${m}</ul>`)
+        .replace(/\n\n+/g, '</p><p>')
+        .replace(/\n/g, '<br>') + '<p></p>';
+    }
+
+    /* ── UI HELPERS ──────────────────────────────────– */
+    function setLoad(on) {
+      document.getElementById('loading').classList.toggle('show', on);
+      const b = document.getElementById('genBtn');
+      b.disabled = on;
+      b.textContent = on ? '⏳  Φτιάχνω το πρόγραμμα…' : '✈️  Δημιούργησε το Πρόγραμμά μου';
+    }
+    function err(msg)  { const e = document.getElementById('errBox'); e.innerHTML = msg; e.classList.add('show'); }
+    function clearErr(){ document.getElementById('errBox').classList.remove('show'); }
+    function copyRes() {
+      const txt = document.getElementById('rb').innerText;
+      navigator.clipboard.writeText(txt).catch(()=>{
+        const a = document.createElement('textarea');
+        a.value = txt; document.body.appendChild(a); a.select();
+        document.execCommand('copy'); document.body.removeChild(a);
+      }).then(()=> alert('✓ Αντιγράφηκε!'));
+    }
+  </script>
+</body>
+</html>
